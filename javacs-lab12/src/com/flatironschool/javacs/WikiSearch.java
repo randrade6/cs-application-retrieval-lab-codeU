@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import redis.clients.jedis.Jedis;
 
@@ -60,8 +62,11 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch or(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+		Map<String, Integer> thatMap = that.map;
+		Map<String, Integer> newMap = Stream.concat(map.entrySet().stream(), thatMap.entrySet().stream()).
+				collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),
+						(val1, val2) -> totalRelevance(val1, val2)));
+		return new WikiSearch(newMap);
 	}
 	
 	/**
@@ -71,8 +76,10 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch and(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+		Map<String, Integer> thatMap = that.map;
+		Map<String, Integer> newMap = map.keySet().stream().filter(key -> thatMap.containsKey(key)).
+				collect(Collectors.toMap(key -> key, key -> totalRelevance(map.get(key), thatMap.get(key))));
+		return new WikiSearch(newMap);
 	}
 	
 	/**
@@ -82,8 +89,10 @@ public class WikiSearch {
 	 * @return New WikiSearch object.
 	 */
 	public WikiSearch minus(WikiSearch that) {
-        // FILL THIS IN!
-		return null;
+		Map<String, Integer> thatMap = that.map;
+		Map<String, Integer> newMap = map.keySet().stream().filter(key -> !thatMap.containsKey(key)).
+				collect(Collectors.toMap(key -> key, key -> map.get(key)));
+		return new WikiSearch(newMap);
 	}
 	
 	/**
@@ -104,8 +113,9 @@ public class WikiSearch {
 	 * @return List of entries with URL and relevance.
 	 */
 	public List<Entry<String, Integer>> sort() {
-        // FILL THIS IN!
-		return null;
+		List<Entry<String, Integer>> toReturn = map.entrySet().stream().sorted((entry1, entry2) ->
+				entry1.getValue() - entry2.getValue()).collect(Collectors.toList());
+		return toReturn;
 	}
 
 	/**
